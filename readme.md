@@ -67,7 +67,6 @@ garmin_project/
 
 3.  **Configurez `garmindb` :** L'outil `garmindb` nécessite vos identifiants Garmin Connect. Il est préférable de le configurer en utilisant des variables d'environnement ou un fichier de configuration comme décrit dans la [documentation de garmindb](https://github.com/matin/garmindb).
 
-<<<<<<< HEAD
 Pour ce faire vous pouvez dans le terminal les commandes suivantes : 
 mkdir ~/.GarminDB
 touch ~/.GarminDB/GarminConnectConfig.json
@@ -124,8 +123,6 @@ Et remplissez le fichier de la façon suivante :
     }
 }
 
-=======
->>>>>>> d0c17e0b89da4bc7dd3460b18e3339b33707c86f
 ---
 
 ## Utilisation
