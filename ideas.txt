@@ -1,0 +1,29 @@
+Journalier : impact de la charge de l'entrainement sur l'organisme / récupération
+
+-----------------------------------------------------------------------
+Calculate Time in Each Zone for Every Activity
+This is where our records table becomes incredibly powerful. For each activity:
+
+We'll query all the heart_rate data points from the records table.
+
+For every second of the activity, we'll classify the heart rate into one of the 5 zones we just defined.
+
+We'll then sum the total time (in minutes) you spent in each zone.
+
+Step 3: Calculate the Zone-Weighted Load Score (zTRIMP)
+Now we assign a multiplier to each zone that reflects its physiological demand. The higher the zone, the higher the weight.
+
+Zone 1 Multiplier: 1
+
+Zone 2 Multiplier: 2
+
+Zone 3 Multiplier: 3
+
+Zone 4 Multiplier: 4
+
+Zone 5 Multiplier: 5
+
+The formula for the activity's load score will be:
+
+Activity Load Score = (Minutes in Z1 * 1) + (Minutes in Z2 * 2) + (Minutes in Z3 * 3) + (Minutes in Z4 * 4) + (Minutes in Z5 * 5)
+
