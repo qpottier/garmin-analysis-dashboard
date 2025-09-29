@@ -4,7 +4,11 @@ Ce projet est un pipeline de données et un tableau de bord d'analyse entièreme
 
 L'objectif principal est d'aller au-delà des métriques de base fournies par Garmin Connect et de construire un outil personnalisé pour suivre la charge d'entraînement, la récupération et l'état de forme en se basant sur des principes scientifiques.
 
+<<<<<<< HEAD
 [Image d'un tableau de bord moderne d'analyse de données avec des graphiques (a ajouter)]
+=======
+[Image d'un tableau de bord moderne d'analyse de données avec des graphiques]
+>>>>>>> d0c17e0b89da4bc7dd3460b18e3339b33707c86f
 
 ---
 
@@ -63,6 +67,7 @@ garmin_project/
 
 3.  **Configurez `garmindb` :** L'outil `garmindb` nécessite vos identifiants Garmin Connect. Il est préférable de le configurer en utilisant des variables d'environnement ou un fichier de configuration comme décrit dans la [documentation de garmindb](https://github.com/matin/garmindb).
 
+<<<<<<< HEAD
 Pour ce faire vous pouvez dans le terminal les commandes suivantes : 
 mkdir ~/.GarminDB
 touch ~/.GarminDB/GarminConnectConfig.json
@@ -119,6 +124,8 @@ Et remplissez le fichier de la façon suivante :
     }
 }
 
+=======
+>>>>>>> d0c17e0b89da4bc7dd3460b18e3339b33707c86f
 ---
 
 ## Utilisation
