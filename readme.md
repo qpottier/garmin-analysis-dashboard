@@ -4,11 +4,7 @@ Ce projet est un pipeline de données et un tableau de bord d'analyse entièreme
 
 L'objectif principal est d'aller au-delà des métriques de base fournies par Garmin Connect et de construire un outil personnalisé pour suivre la charge d'entraînement, la récupération et l'état de forme en se basant sur des principes scientifiques.
 
-<<<<<<< HEAD
 [Image d'un tableau de bord moderne d'analyse de données avec des graphiques (a ajouter)]
-=======
-[Image d'un tableau de bord moderne d'analyse de données avec des graphiques]
->>>>>>> d0c17e0b89da4bc7dd3460b18e3339b33707c86f
 
 ---
 
