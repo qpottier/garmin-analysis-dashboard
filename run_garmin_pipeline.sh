@@ -12,12 +12,14 @@ if [ ! -f "garmin_data.db" ]; then
 else
     echo "Database found. Downloading latest data..."
     garmindb_cli.py --activities --sleep --latest --download
+fi
 
 
 # Run the Python script to populate the database
 echo "Running database import script..."
 python3 scripts/main.py
 
-rm -r HealthData # Remove existing HealthData directory if it exists
+# Clean up HealthData directory if it exists
+rm -rf HealthData # Remove existing HealthData directory if it exists
 
 echo "Garmin pipeline finished."

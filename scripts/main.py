@@ -17,7 +17,10 @@ def main():
     Main function to coordinate the database creation and data import process.
     """
     # 1. Create the database and tables using the absolute path
-    create_database(DATABASE_FILE)
+    if not os.path.exists(DATABASE_FILE):
+        print(f"Database file '{DATABASE_FILE}' does not exist. Creating a new database.")
+        create_database(DATABASE_FILE)
+
 
     # 2. Get the list of .fit files
     fit_files = [f for f in os.listdir(FIT_FILES_DIRECTORY) if f.endswith('.fit')]
