@@ -19,6 +19,7 @@ DATABASE_FILE = os.path.join(PROJECT_ROOT, "garmin_data.db")
 
 # --- Définition des zones personelles (modifié plus tard quand intégré dans la BDD) ---
 hr_bins = [0, 153, 173, 188, 195, 204]
+hr_zone_multipliers = { "Z1": 1, "Z2": 2, "Z3": 3, "Z4": 4, "Z5": 5 }
 speed_bins = [0,13,16,19,21,30]  # en km/h  
 zone_labels = ["Z1 - Endurance", "Z2 - Marathon", "Z3 - Seuil", "Z4 - VMA", "Z5 - Max"]
 zone_colors = {
@@ -94,6 +95,84 @@ def load_weekly_volume_by_speed_zone():
     
     return weekly_zone_dist[weekly_zone_dist['week_start'].isin(recent_weeks)]
 
+@st.cache_data
+def calculate_daily_stress(start_date, end_date):
+    """Calcule le score de stress quotidien (zTRIMP * RPE) pour la période donnée."""
+    conn = sqlite3.connect(DATABASE_FILE)
+    start_str, end_str = start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d')
+    
+    query = f"""
+        SELECT
+            r.activity_id,
+            r.heart_rate,
+            a.workout_rpe,
+            a.workout_feel,
+            a.start_time_gmt
+        FROM records r
+        JOIN activities a ON r.activity_id = a.activity_id
+        WHERE DATE(a.start_time_gmt) BETWEEN '{start_str}' AND '{end_str}' AND r.heart_rate IS NOT NULL
+    """
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+
+    if df.empty:
+        return pd.DataFrame(columns=['activity_date', 'daily_stress_score'])
+
+    # 1. Calcul de la charge objective (zTRIMP)
+    df['hr_zone'] = pd.cut(df['heart_rate'], bins=hr_bins, labels=zone_labels, right=True)
+    time_in_zones = df.groupby(['activity_id', 'hr_zone']).size().unstack(fill_value=0) / 60  # en minutes
+
+    time_in_zones['zTRIMP'] = 0
+    for zone, multiplier in hr_zone_multipliers.items():
+        if zone in time_in_zones.columns:
+            time_in_zones['zTRIMP'] += time_in_zones[zone] * multiplier
+
+    # 2. Calcul du multiplicateur subjectif (RPE & Ressenti)
+    activity_perception = df[['activity_id', 'workout_rpe', 'workout_feel']].drop_duplicates().set_index('activity_id')
+    
+    def get_rpe_multiplier(rpe):
+        if rpe <= 4: return 0.9
+        if rpe <= 6: return 1.0
+        if rpe <= 8: return 1.15
+        return 1.3
+
+    def get_feel_adjustment(feel):
+        if feel <= 30: return 0.1 # Mauvais ressenti, augmente le stress
+        if feel >= 70: return -0.1 # Bon ressenti, diminue le stress
+        return 0.0
+
+    activity_perception['rpe_multiplier'] = activity_perception['workout_rpe'].apply(get_rpe_multiplier)
+    activity_perception['feel_adjustment'] = activity_perception['workout_feel'].apply(get_feel_adjustment)
+    activity_perception['total_multiplier'] = activity_perception['rpe_multiplier'] + activity_perception['feel_adjustment']
+
+    # 3. Calcul du score de stress final par activité
+    final_scores = time_in_zones.join(activity_perception)
+    final_scores.dropna(subset=['zTRIMP', 'total_multiplier'], inplace=True)
+    final_scores['activity_stress_score'] = final_scores['zTRIMP'] * final_scores['total_multiplier']
+
+    # 4. Agrégation par jour
+    activity_dates = df[['activity_id', 'start_time_gmt']].drop_duplicates().set_index('activity_id')
+    activity_dates['activity_date'] = pd.to_datetime(activity_dates['start_time_gmt']).dt.date
+    final_scores = final_scores.join(activity_dates)
+    
+    daily_stress = final_scores.groupby('activity_date')['activity_stress_score'].sum().reset_index()
+    daily_stress.rename(columns={'activity_stress_score': 'daily_stress_score'}, inplace=True)
+
+    return daily_stress
+    
+
+    # 1. Calcul de la charge objective (zTRIMP)
+    df['hr_zone'] = pd.cut(df['heart_rate'], bins=hr_bins, labels=hr_zone_labels, right=True)
+    time_in_zones = df.groupby(['activity_id', 'hr_zone']).size().unstack(fill_value=0) / 60  # en minutes
+
+    time_in_zones['zTRIMP'] = 0
+    for zone, multiplier in hr_zone_multipliers.items():
+        if zone in time_in_zones.columns:
+            time_in_zones['zTRIMP'] += time_in_zones[zone] * multiplier
+
+    # 2. Calcul du multiplicateur subjectif (RPE & Ressenti)
+    activity_perception = df[['activity_id', 'workout_rpe', 'workout_feel']].drop_duplicates().set_index('activity_id')
+
 
 
 # --- Barre latérale ---
@@ -130,6 +209,7 @@ st.sidebar.info(f"Période sélectionnée : \n{start_date.strftime('%d/%m/%Y')} 
 # --- Chargement des données filtrées ---
 df_filtered = load_main_data(start_date, end_date)
 df_weekly_volume_by_speed_zone = load_weekly_volume_by_speed_zone()
+df_daily_stress = calculate_daily_stress(start_date, end_date)
 
 
 # --- Affichage du Dashboard ---
@@ -155,15 +235,19 @@ else:
     col_graph1, col_graph2 = st.columns(2)
     
     with col_graph1:
-        st.subheader("Charge d'entraînement (zTRIMP)")
-        # Placeholder - nous construirons ce graphique ensuite
-        st.info("Le calcul de la charge d'entraînement (zTRIMP) sera implémenté ici.")
-        # Exemple de graphique simple en attendant
-        df_daily_volume = df_filtered.copy()
-        df_daily_volume['activity_date'] = pd.to_datetime(df_daily_volume['start_time_gmt']).dt.date
-        daily_summary = df_daily_volume.groupby('activity_date')['distance_m'].sum() / 1000
-        fig_placeholder = px.bar(daily_summary, title="Volume par jour (km)", labels={'value': 'Distance (km)', 'activity_date': 'Date'})
-        st.plotly_chart(fig_placeholder, use_container_width=True)
+        st.subheader("Charge d'Entraînement Quotidienne")
+        if df_daily_stress.empty:
+            st.info("Pas de données de charge d'entraînement pour cette période.")
+        else:
+            fig_stress = px.bar(
+                df_daily_stress,
+                x='activity_date',
+                y='daily_stress_score',
+                title="Évolution du Score de Stress Journalier",
+                labels={'activity_date': 'Date', 'daily_stress_score': 'Score de Stress (Points)'}
+            )
+            fig_stress.update_layout(xaxis_title=None)
+            st.plotly_chart(fig_stress, use_container_width=True)
 
     with col_graph2:
         st.subheader("Volume Hebdomadaire par Zone de Vitesse")
