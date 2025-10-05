@@ -18,6 +18,7 @@ DATABASE_FILE = os.path.join(PROJECT_ROOT, "garmin_data.db")
 
 
 # --- Définition des zones personelles (modifié plus tard quand intégré dans la BDD) ---
+# A modifier par personne (cc Nico)
 hr_bins = [0, 153, 173, 188, 195, 204]
 hr_zone_multipliers = { "Z1": 1, "Z2": 2, "Z3": 3, "Z4": 4, "Z5": 5 }
 speed_bins = [0,13,16,19,21,30]  # en km/h  

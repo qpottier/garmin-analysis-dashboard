@@ -1,6 +1,6 @@
 # Garmin Personal Training & Analysis Dashboard
 
-Ce projet est un pipeline de données et un tableau de bord d'analyse entièrement automatisés pour les données de fitness personnelles Garmin. Il télécharge les fichiers bruts FIT et JSON d'un compte Garmin, les traite dans une base de données SQLite structurée et prépare les données pour une analyse et une visualisation avancées.
+Ce projet est un pipeline de données et un tableau de bord d'analyse d'entrainement automatisé qui va récupérer les données de récupération et d'entrainement sur Garmin. Il télécharge les fichiers bruts FIT et JSON d'un compte Garmin, les traite dans une base de données SQLite structurée et prépare les données pour une analyse et une visualisation avancées.
 
 L'objectif principal est d'aller au-delà des métriques de base fournies par Garmin Connect et de construire un outil personnalisé pour suivre la charge d'entraînement, la récupération et l'état de forme en se basant sur des principes scientifiques.
 
@@ -34,7 +34,7 @@ L'objectif principal est d'aller au-delà des métriques de base fournies par Ga
 garmin_project/
 ├── analysis/
 │   └── analysis.ipynb        # Jupyter Notebook pour l'exploration des données.
-├── data_import_db_creation/
+├── scripts/
 │   ├── functions.py          # Logique principale pour le parsing et le remplissage de la BDD.
 │   ├── main.py               # Script principal pour lancer le processus d'import.
 │   └── dashboard.py          # (En cours) Application du tableau de bord Streamlit.
@@ -63,11 +63,27 @@ garmin_project/
 
 3.  **Configurez `garmindb` :** L'outil `garmindb` nécessite vos identifiants Garmin Connect. Il est préférable de le configurer en utilisant des variables d'environnement ou un fichier de configuration comme décrit dans la [documentation de garmindb](https://github.com/matin/garmindb).
 
-Pour ce faire vous pouvez dans le terminal les commandes suivantes : 
-mkdir ~/.GarminDB
-touch ~/.GarminDB/GarminConnectConfig.json
+- Créer le fichier de configuration
 
+Ouvrez votre terminal et exécutez la commande suivante. Elle va créer le dossier .GarminDB dans votre répertoire personnel (s'il n'existe pas déjà), puis y créer le fichier de configuration vide.
+
+    ```bash
+    mkdir -p ~/.GarminDB && touch ~/.GarminDB/GarminConnectConfig.json
+    ```
+
+- Ouvrir le fichier dans VS Code
+
+    Lancez cette commande pour ouvrir le fichier que vous venez de créer directement dans Visual Studio Code.
+```bash
+code ~/.GarminDB/GarminConnectConfig.json
+```
+
+- Remplir le fichier de configuration
+
+Copiez et collez l'intégralité du bloc de code ci-dessous dans le fichier que vous venez d'ouvrir dans VS Code.
 Et remplissez le fichier de la façon suivante : 
+
+```json
 {
     "db": {
         "type"                          : "sqlite"
@@ -118,8 +134,22 @@ Et remplissez le fichier de la façon suivante :
         "look_back_days"                : 90
     }
 }
+```
+
+- 4 : Modifier vos informations personnelles
+
+Vous devez maintenant modifier uniquement les deux lignes suivantes dans le fichier que vous avez collé :
+
+"user" : Remplacez "votre.email@example.com" par l'adresse e-mail de votre compte Garmin.
+
+"password" : Remplacez "votre_mot_de_passe_garmin" par le mot de passe de votre compte Garmin.
+
+Sauvegardez le fichier (Cmd + S ou Ctrl + S), et c'est terminé ! Votre script run_garmin_pipeline.sh pourra maintenant s'authentifier et télécharger vos données.
 
 ---
+
+
+
 
 ## Utilisation
 
