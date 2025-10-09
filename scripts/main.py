@@ -62,6 +62,11 @@ def main():
         for sleep_file in sleep_files:
             file_path = os.path.join(SLEEP_FILES_DIRECTORY, sleep_file)
             sleep_data = get_sleep_data(file_path)
+            # Print all global infos of the ongoing night
+            print(f"Global sleep info for {sleep_file}:")
+            for key, value in sleep_data.items():
+                print(f"  {key}: {value}")
+            #print(f"\n--- HRV for this file {sleep_file} is {sleep_data.get('avg_overnight_hrv')} ---")
 
             if sleep_data:
                 if populate_sleep_table(sleep_data, DATABASE_FILE):

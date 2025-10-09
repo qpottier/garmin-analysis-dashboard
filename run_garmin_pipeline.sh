@@ -20,6 +20,6 @@ echo "Running database import script..."
 python3 scripts/main.py
 
 # Clean up HealthData directory if it exists
-rm -rf HealthData # Remove existing HealthData directory if it exists
+#rm -rf HealthData # Remove existing HealthData directory if it exists
 
 echo "Garmin pipeline finished."

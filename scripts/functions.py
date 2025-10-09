@@ -162,10 +162,26 @@ def create_database(database_file):
         FOREIGN KEY (activity_id) REFERENCES activities (activity_id)
     );
     """)
+
     
     con.commit()
     con.close()
     print(f"Database '{database_file}' is ready.")
+
+
+
+# def add_or_update_user(user_id, full_name, database_file):
+#     con = sqlite3.connect(database_file)
+#     cur = con.cursor()
+#     cur.execute(""" """
+#         INSERT INTO users (user_id, full_name)
+#         VALUES (?, ?, ?)
+#         ON CONFLICT(user_id) DO UPDATE SET
+#             full_name = excluded.full_name;
+#     """, (user_id, full_name))
+#     con.commit()
+#     con.close()
+#     print(f"User '{user_id}' added or updated in the database.")
 
 
 
@@ -184,7 +200,7 @@ def populate_tables(data, database_file):
     cur = con.cursor()
 
     # --- Security Check: See if activity_id already exists ---
-    cur.execute("SELECT activity_id FROM activities WHERE activity_id = ?", (activity_id,))
+    cur.execute("SELECT activity_id FROM activities WHERE activity_id = ? ", (activity_id,))
     if cur.fetchone():
         print(f"Activity {activity_id} already exists in the database. Skipping.")
         con.close()
@@ -272,7 +288,8 @@ def get_sleep_data(json_file_path):
     """Parses a sleep JSON file and extracts the relevant data."""
     try:
         with open(json_file_path, 'r') as f:
-            data = json.load(f).get('dailySleepDTO', {})
+            root_data = json.load(f)
+            data = root_data.get('dailySleepDTO', {})
     except (FileNotFoundError, json.JSONDecodeError):
         return None
 
@@ -293,8 +310,8 @@ def get_sleep_data(json_file_path):
         "awake_sleep_seconds": data.get('awakeSleepSeconds'),
         "avg_sleep_stress": data.get('avgSleepStress'),
         "overall_score": data.get('sleepScores', {}).get('overall', {}).get('value'),
-        "avg_overnight_hrv": data.get('avgOvernightHrv'),
-        "resting_heart_rate": data.get('restingHeartRate')
+        "avg_overnight_hrv": root_data.get('avgOvernightHrv'),  # Get from root level
+        "resting_heart_rate": root_data.get('restingHeartRate')  # Also root level
     }
 
 
@@ -307,7 +324,7 @@ def populate_sleep_table(data, database_file):
     cur = con.cursor()
 
     # Security Check: See if sleep_id already exists
-    cur.execute("SELECT sleep_id FROM sleep WHERE sleep_id = ?", (data['sleep_id'],))
+    cur.execute("SELECT sleep_id FROM sleep WHERE sleep_id = ? ", (data['sleep_id'],))
     if cur.fetchone():
         con.close()
         return False # Indicates that the data was skipped
