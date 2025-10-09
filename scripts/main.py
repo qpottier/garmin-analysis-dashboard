@@ -1,6 +1,15 @@
 
 import os
-from functions import create_database, get_filtered_activity_data, populate_tables, populate_sleep_table, get_sleep_data
+import sys
+import json
+from functions_optimized import (
+    create_database,
+    add_or_update_user,
+    get_filtered_activity_data,
+    populate_tables_optimized as populate_tables,
+    get_sleep_data,
+    populate_sleep_table
+)
 
 # --- Configuration ---
 # Define the project root directory (one level up from this script's location)
@@ -8,18 +17,17 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # Define paths relative to the project root for clarity
 DATABASE_FILE = os.path.join(PROJECT_ROOT, "garmin_data.db")
-FIT_FILES_DIRECTORY = os.path.join(PROJECT_ROOT, 'HealthData/FitFiles/Activities/')
-SLEEP_FILES_DIRECTORY = os.path.join(PROJECT_ROOT, 'HealthData/Sleep/')
+FIT_FILES_DIRECTORY = os.path.join(PROJECT_ROOT, 'HealthData_qpottier/FitFiles/Activities/')
+SLEEP_FILES_DIRECTORY = os.path.join(PROJECT_ROOT, 'HealthData_qpottier/Sleep/')
 
 
 def main():
     """
     Main function to coordinate the database creation and data import process.
     """
-    # 1. Create the database and tables using the absolute path
-    if not os.path.exists(DATABASE_FILE):
-        print(f"Database file '{DATABASE_FILE}' does not exist. Creating a new database.")
-        create_database(DATABASE_FILE)
+    # 1. Create the database in PostgreSQL
+    create_database()
+
 
 
     # 2. Get the list of .fit files
@@ -42,7 +50,7 @@ def main():
 
         if extracted_data:
             # Pass the database file path to the populate function
-            if populate_tables(extracted_data, DATABASE_FILE):
+            if populate_tables(extracted_data):
                 imported_files_count += 1
             else:
                 skipped_files_count += 1
@@ -66,10 +74,10 @@ def main():
             print(f"Global sleep info for {sleep_file}:")
             for key, value in sleep_data.items():
                 print(f"  {key}: {value}")
-            #print(f"\n--- HRV for this file {sleep_file} is {sleep_data.get('avg_overnight_hrv')} ---")
+
 
             if sleep_data:
-                if populate_sleep_table(sleep_data, DATABASE_FILE):
+                if populate_sleep_table(sleep_data):
                     imported_sleep_count += 1
                 else:
                     skipped_sleep_count += 1
@@ -85,4 +93,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        print("Info: This script doesn't require any arguments. Running with default paths...")
+    
     main()
